@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>减脂热量计算器</title>
+    <style>
+        :root {
+            --bg: #f7f9f3; --card: #ffffff; --primary: #6b9b5a; --primary-light: #e8f0e2;
+            --accent: #e8946b; --text: #3c3c3c; --text-secondary: #8a8a8a; --text-muted: #c0c8b8;
+            --border: #e8ece2; --shadow: 0 2px 12px rgba(0,0,0,0.04); --radius: 14px;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            font-family: 'PingFang SC','Microsoft YaHei','Segoe UI',sans-serif;
+            background: var(--bg); min-height: 100vh; display: flex; justify-content: center;
+            padding: 30px 16px;
+        }
+        .app { width: 100%; max-width: 480px; display: flex; flex-direction: column; gap: 16px; }
+
+        .card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); padding: 22px 20px; }
+
+        .gender-row { display: flex; background: #f1f4ed; border-radius: 10px; padding: 3px; margin-bottom: 14px; }
+        .gender-row button { flex:1; padding: 10px; border: none; background: transparent; border-radius: 8px; font-size: 13px; cursor: pointer; color: var(--text-secondary); font-family: inherit; }
+        .gender-row button.active { background: #fff; color: var(--primary); font-weight: 600; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+
+        .field-row { display: flex; gap: 10px; margin-bottom: 14px; }
+        .field { flex:1; }
+        .field label { display: block; font-size: 10px; color: var(--text-secondary); margin-bottom: 4px; }
+        .field input { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; color: var(--text); outline: none; background: #fafbf8; font-family: inherit; }
+        .field input:focus { border-color: var(--primary); background: #fff; }
+
+        .section-label { font-size: 10px; color: var(--text-secondary); margin-bottom: 8px; }
+
+        .activity-options { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+        .activity-opt { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 8px; background: #fafbf8; border: 1.5px solid var(--border); cursor: pointer; font-size: 13px; color: var(--text); }
+        .activity-opt:hover { border-color: var(--primary); }
+        .activity-opt.active { border-color: var(--primary); background: var(--primary-light); font-weight: 500; }
+        .activity-opt .act-icon { font-size: 18px; flex-shrink: 0; }
+
+        .btn { width: 100%; padding: 13px; border: none; border-radius: 10px; font-size: 15px; font-weight: 500; cursor: pointer; font-family: inherit; letter-spacing: 1px; }
+        .btn-primary { background: var(--primary); color: #fff; }
+        .btn-primary:hover { background: #5d8a4a; }
+
+        .result-box { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); }
+
+        .stat-line { display: flex; justify-content: space-between; align-items: baseline; padding: 12px 0; border-bottom: 1px solid #f5f7f0; }
+        .stat-line:last-child { border-bottom: none; }
+        .stat-label { font-size: 14px; color: var(--text); }
+        .stat-value { font-size: 18px; font-weight: 600; color: var(--text); }
+        .stat-value small { font-size: 11px; font-weight: 400; color: var(--text-muted); margin-left: 2px; }
+
+        .highlight { background: var(--primary-light); border-radius: 10px; padding: 16px; margin: 14px 0; text-align: center; }
+        .highlight .hl-label { font-size: 12px; color: var(--primary); font-weight: 500; margin-bottom: 4px; }
+        .highlight .hl-value { font-size: 36px; font-weight: 600; color: var(--primary); }
+        .highlight .hl-value small { font-size: 13px; font-weight: 400; color: var(--text-secondary); margin-left: 2px; }
+        .highlight .hl-note { font-size: 11px; color: var(--text-secondary); margin-top: 8px; line-height: 1.6; }
+
+        .macro-section { margin-top: 6px; }
+        .macro-title { font-size: 12px; font-weight: 500; color: var(--text); margin-bottom: 10px; }
+        .macro-row { display: flex; align-items: center; gap: 10px; padding: 5px 0; }
+        .macro-icon { font-size: 16px; width: 24px; text-align: center; flex-shrink: 0; }
+        .macro-info { flex:1; }
+        .macro-info .top { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 3px; }
+        .macro-name { color: var(--text); }
+        .macro-value { font-weight: 600; }
+        .macro-bar { height: 5px; background: #f1f4ed; border-radius: 3px; overflow: hidden; }
+        .macro-bar .fill { height: 100%; border-radius: 3px; transition: width 0.5s ease; }
+        .fill-protein { background: #c4a882; }
+        .fill-fat { background: #e8946b; }
+        .fill-carbs { background: #a8c97f; }
+
+        .footnote { font-size: 11px; color: var(--text-muted); text-align: center; margin-top: 14px; line-height: 1.6; }
+
+        @media (max-width: 480px) {
+            body { padding: 16px 10px; }
+            .card { padding: 16px 14px; border-radius: 12px; }
+            .stat-value { font-size: 16px; }
+            .highlight .hl-value { font-size: 30px; }
+            .activity-opt { padding: 9px 10px; font-size: 12px; }
+            .field input { padding: 9px 10px; font-size: 14px; }
+            .btn { padding: 12px; font-size: 14px; }
+        }
+    </style>
+</head>
+<body>
+<div class="app">
+    <div style="text-align:center;">
+        <span style="font-size:28px;">🥗</span>
+        <div style="font-size:18px;font-weight:600;color:var(--primary);">减脂热量计算器</div>
+    </div>
+
+    <div class="card">
+        <div class="gender-row" id="genderSwitch">
+            <button class="active" data-gender="male">👨 男性</button>
+            <button data-gender="female">👩 女性</button>
+        </div>
+
+        <div class="field-row">
+            <div class="field"><label>体重 (kg)</label><input type="number" id="weight" placeholder="70" step="0.1" min="30" max="250"></div>
+            <div class="field"><label>身高 (cm)</label><input type="number" id="height" placeholder="170" step="0.1" min="100" max="250"></div>
+            <div class="field"><label>年龄</label><input type="number" id="age" placeholder="25" min="12" max="100"></div>
+        </div>
+
+        <div class="section-label">活动水平</div>
+        <div class="activity-options" id="activityOptions">
+            <div class="activity-opt" data-value="1.2">
+                <span class="act-icon">🪑</span>久坐少动 · 几乎不运动，长时间坐着工作
+            </div>
+            <div class="activity-opt active" data-value="1.375">
+                <span class="act-icon">🚶</span>轻度活动 · 每周运动1-3次，如散步、瑜伽
+            </div>
+            <div class="activity-opt" data-value="1.55">
+                <span class="act-icon">🏃</span>中度活动 · 每周运动3-5次，如跑步、骑行
+            </div>
+            <div class="activity-opt" data-value="1.725">
+                <span class="act-icon">🔥</span>高强度活动 · 每周运动6-7次，高强度训练
+            </div>
+        </div>
+
+        <button class="btn btn-primary" id="calcBtn">📊 开始计算</button>
+
+        <div class="result-box" id="resultBox" style="display:none;">
+            <div class="stat-line">
+                <span class="stat-label">🔥 你的基础代谢</span>
+                <span class="stat-value" id="bmrVal">0<small>大卡</small></span>
+            </div>
+            <div class="stat-line">
+                <span class="stat-label">⚡ 你的日消耗热量</span>
+                <span class="stat-value" id="tdeeVal">0<small>大卡</small></span>
+            </div>
+
+            <div class="highlight">
+                <div class="hl-label">🎯 减脂期每天建议摄入</div>
+                <div class="hl-value" id="targetCal">0<small>大卡</small></div>
+                <div class="hl-note" id="hlNote"></div>
+            </div>
+
+            <div class="macro-section">
+                <div class="macro-title">🍽️ 每天营养分配</div>
+                <div class="macro-row">
+                    <span class="macro-icon">🥩</span>
+                    <div class="macro-info">
+                        <div class="top"><span class="macro-name">蛋白质</span><span class="macro-value" id="proteinG">0 克</span></div>
+                        <div class="macro-bar"><div class="fill fill-protein" id="proteinBar" style="width:0%"></div></div>
+                    </div>
+                </div>
+                <div class="macro-row">
+                    <span class="macro-icon">🥑</span>
+                    <div class="macro-info">
+                        <div class="top"><span class="macro-name">脂肪</span><span class="macro-value" id="fatG">0 克</span></div>
+                        <div class="macro-bar"><div class="fill fill-fat" id="fatBar" style="width:0%"></div></div>
+                    </div>
+                </div>
+                <div class="macro-row">
+                    <span class="macro-icon">🍚</span>
+                    <div class="macro-info">
+                        <div class="top"><span class="macro-name">碳水</span><span class="macro-value" id="carbsG">0 克</span></div>
+                        <div class="macro-bar"><div class="fill fill-carbs" id="carbsBar" style="width:0%"></div></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footnote" id="footnote"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function(){
+    let gender = 'male';
+    let activityFactor = 1.375;
+
+    document.querySelectorAll('#activityOptions .activity-opt').forEach(opt => {
+        opt.addEventListener('click', function(){
+            document.querySelectorAll('#activityOptions .activity-opt').forEach(o => o.classList.remove('active'));
+            this.classList.add('active');
+            activityFactor = parseFloat(this.dataset.value);
+        });
+    });
+
+    document.querySelectorAll('#genderSwitch button').forEach(btn => {
+        btn.addEventListener('click', function(){
+            document.querySelectorAll('#genderSwitch button').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            gender = this.dataset.gender;
+        });
+    });
+
+    document.getElementById('calcBtn').addEventListener('click', function(){
+        const weight = parseFloat(document.getElementById('weight').value);
+        const height = parseFloat(document.getElementById('height').value);
+        const age = parseInt(document.getElementById('age').value);
+        const proteinFactor = 1.6;
+
+        if(isNaN(weight) || isNaN(height) || isNaN(age)){
+            alert('请填写完整数据');
+            return;
+        }
+
+        let bmr = gender === 'male'
+            ? 10 * weight + 6.25 * height - 5 * age + 5
+            : 10 * weight + 6.25 * height - 5 * age - 161;
+
+        const tdee = Math.round(bmr * activityFactor);
+        const targetIntake = Math.round(tdee * 0.8);
+        const proteinG = Math.round(weight * proteinFactor);
+        const proteinCals = proteinG * 4;
+        const fatRatio = gender === 'male' ? 0.8 : 1.0;
+        const fatG = Math.round(weight * fatRatio);
+        const fatCals = fatG * 9;
+        const remainingCals = targetIntake - proteinCals - fatCals;
+        const carbsG = Math.max(0, Math.round(remainingCals / 4));
+        const carbsCals = carbsG * 4;
+
+        document.getElementById('bmrVal').innerHTML = Math.round(bmr) + '<small>大卡</small>';
+        document.getElementById('tdeeVal').innerHTML = tdee + '<small>大卡</small>';
+        document.getElementById('targetCal').innerHTML = targetIntake + '<small>大卡</small>';
+        document.getElementById('proteinG').textContent = proteinG + ' 克';
+        document.getElementById('fatG').textContent = fatG + ' 克';
+        document.getElementById('carbsG').textContent = carbsG + ' 克';
+
+        const totalCal = proteinCals + fatCals + carbsCals;
+        document.getElementById('proteinBar').style.width = totalCal > 0 ? (proteinCals / totalCal * 100) + '%' : '0%';
+        document.getElementById('fatBar').style.width = totalCal > 0 ? (fatCals / totalCal * 100) + '%' : '0%';
+        document.getElementById('carbsBar').style.width = totalCal > 0 ? (carbsCals / totalCal * 100) + '%' : '0%';
+
+        document.getElementById('hlNote').textContent = '也别超过 ' + tdee + ' 大卡，避免掉肌肉，陷入平台期';
+        document.getElementById('footnote').innerHTML = '💡 日摄入量不要低于 <b>' + targetIntake + '</b> 大卡（建议摄入量），<br>也不要高于 <b>' + tdee + '</b> 大卡（日消耗量）。<br>这样才是健康的减脂，不会大量掉肌肉，也不会陷入平台期。';
+
+        document.getElementById('resultBox').style.display = 'block';
+        document.getElementById('calcBtn').textContent = '🔄 重新计算';
+        document.getElementById('resultBox').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+
+    document.getElementById('weight').value = '70';
+    document.getElementById('height').value = '170';
+    document.getElementById('age').value = '25';
+})();
+</script>
+</body>
+</html>
