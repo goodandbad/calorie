@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>减脂热量计算器</title>
     <style>
         :root {
@@ -15,30 +15,31 @@
             font-family: 'PingFang SC','Microsoft YaHei','Segoe UI',sans-serif;
             background: var(--bg); min-height: 100vh; display: flex; justify-content: center;
             padding: 30px 16px;
+            -webkit-text-size-adjust: 100%;
         }
         .app { width: 100%; max-width: 480px; display: flex; flex-direction: column; gap: 16px; }
 
         .card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); padding: 22px 20px; }
 
         .gender-row { display: flex; background: #f1f4ed; border-radius: 10px; padding: 3px; margin-bottom: 14px; }
-        .gender-row button { flex:1; padding: 10px; border: none; background: transparent; border-radius: 8px; font-size: 13px; cursor: pointer; color: var(--text-secondary); font-family: inherit; }
+        .gender-row button { flex:1; padding: 10px; border: none; background: transparent; border-radius: 8px; font-size: 16px; cursor: pointer; color: var(--text-secondary); font-family: inherit; }
         .gender-row button.active { background: #fff; color: var(--primary); font-weight: 600; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
 
         .field-row { display: flex; gap: 10px; margin-bottom: 14px; }
         .field { flex:1; }
-        .field label { display: block; font-size: 10px; color: var(--text-secondary); margin-bottom: 4px; }
-        .field input { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; color: var(--text); outline: none; background: #fafbf8; font-family: inherit; }
+        .field label { display: block; font-size: 14px; color: var(--text-secondary); margin-bottom: 4px; }
+        .field input { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 16px; color: var(--text); outline: none; background: #fafbf8; font-family: inherit; }
         .field input:focus { border-color: var(--primary); background: #fff; }
 
-        .section-label { font-size: 10px; color: var(--text-secondary); margin-bottom: 8px; }
+        .section-label { font-size: 14px; color: var(--text-secondary); margin-bottom: 8px; }
 
         .activity-options { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
-        .activity-opt { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 8px; background: #fafbf8; border: 1.5px solid var(--border); cursor: pointer; font-size: 13px; color: var(--text); }
+        .activity-opt { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 8px; background: #fafbf8; border: 1.5px solid var(--border); cursor: pointer; font-size: 14px; color: var(--text); }
         .activity-opt:hover { border-color: var(--primary); }
         .activity-opt.active { border-color: var(--primary); background: var(--primary-light); font-weight: 500; }
         .activity-opt .act-icon { font-size: 18px; flex-shrink: 0; }
 
-        .btn { width: 100%; padding: 13px; border: none; border-radius: 10px; font-size: 15px; font-weight: 500; cursor: pointer; font-family: inherit; letter-spacing: 1px; }
+        .btn { width: 100%; padding: 13px; border: none; border-radius: 10px; font-size: 16px; font-weight: 500; cursor: pointer; font-family: inherit; letter-spacing: 1px; }
         .btn-primary { background: var(--primary); color: #fff; }
         .btn-primary:hover { background: #5d8a4a; }
 
@@ -46,22 +47,22 @@
 
         .stat-line { display: flex; justify-content: space-between; align-items: baseline; padding: 12px 0; border-bottom: 1px solid #f5f7f0; }
         .stat-line:last-child { border-bottom: none; }
-        .stat-label { font-size: 14px; color: var(--text); }
+        .stat-label { font-size: 16px; color: var(--text); }
         .stat-value { font-size: 18px; font-weight: 600; color: var(--text); }
-        .stat-value small { font-size: 11px; font-weight: 400; color: var(--text-muted); margin-left: 2px; }
+        .stat-value small { font-size: 13px; font-weight: 400; color: var(--text-muted); margin-left: 2px; }
 
         .highlight { background: var(--primary-light); border-radius: 10px; padding: 16px; margin: 14px 0; text-align: center; }
-        .highlight .hl-label { font-size: 12px; color: var(--primary); font-weight: 500; margin-bottom: 4px; }
+        .highlight .hl-label { font-size: 14px; color: var(--primary); font-weight: 500; margin-bottom: 4px; }
         .highlight .hl-value { font-size: 36px; font-weight: 600; color: var(--primary); }
-        .highlight .hl-value small { font-size: 13px; font-weight: 400; color: var(--text-secondary); margin-left: 2px; }
-        .highlight .hl-note { font-size: 11px; color: var(--text-secondary); margin-top: 8px; line-height: 1.6; }
+        .highlight .hl-value small { font-size: 14px; font-weight: 400; color: var(--text-secondary); margin-left: 2px; }
+        .highlight .hl-note { font-size: 12px; color: var(--text-secondary); margin-top: 8px; line-height: 1.6; }
 
         .macro-section { margin-top: 6px; }
-        .macro-title { font-size: 12px; font-weight: 500; color: var(--text); margin-bottom: 10px; }
+        .macro-title { font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 10px; }
         .macro-row { display: flex; align-items: center; gap: 10px; padding: 5px 0; }
         .macro-icon { font-size: 16px; width: 24px; text-align: center; flex-shrink: 0; }
         .macro-info { flex:1; }
-        .macro-info .top { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 3px; }
+        .macro-info .top { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 3px; }
         .macro-name { color: var(--text); }
         .macro-value { font-weight: 600; }
         .macro-bar { height: 5px; background: #f1f4ed; border-radius: 3px; overflow: hidden; }
@@ -70,16 +71,17 @@
         .fill-fat { background: #e8946b; }
         .fill-carbs { background: #a8c97f; }
 
-        .footnote { font-size: 11px; color: var(--text-muted); text-align: center; margin-top: 14px; line-height: 1.6; }
+        .footnote { font-size: 12px; color: var(--text-muted); text-align: center; margin-top: 14px; line-height: 1.6; }
 
         @media (max-width: 480px) {
             body { padding: 16px 10px; }
             .card { padding: 16px 14px; border-radius: 12px; }
-            .stat-value { font-size: 16px; }
             .highlight .hl-value { font-size: 30px; }
-            .activity-opt { padding: 9px 10px; font-size: 12px; }
-            .field input { padding: 9px 10px; font-size: 14px; }
-            .btn { padding: 12px; font-size: 14px; }
+            .activity-opt { padding: 10px 12px; font-size: 14px; }
+            .field input { padding: 10px 12px; font-size: 16px; }
+            .btn { padding: 13px; font-size: 16px; }
+            .stat-label { font-size: 16px; }
+            .stat-value { font-size: 18px; }
         }
     </style>
 </head>
